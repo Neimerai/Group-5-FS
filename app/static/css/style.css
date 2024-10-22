@@ -1,0 +1,405 @@
+body {
+    font-family: 'Inter', sans-serif; /* You can change this to your desired font */
+    background-color: #f8f9fa; /* Light gray background */
+}
+nav{
+    margin: 0;
+    padding: 0;
+}
+nav ul {
+    list-style-type: none;
+}
+nav ul li{
+    display: inline-block;
+    padding: 5px 20px;
+}
+nav a {
+    color: black;
+    text-decoration: none;
+    font-size: 13px;   
+}
+nav a:hover {
+color: #426B1F;
+}
+
+/* Header Container */
+.header-container {
+    display: flex;  /* Use Flexbox to align children side by side */
+    align-items: center;  /* Align items vertically in the center */
+    justify-content: space-between;  /* Distribute space between h1 and nav */
+    padding: 20px 50px;
+}
+
+.logo-typography {
+    color: #426B1F;
+    font-family: 'Newsreader', serif;  /* Use Newsreader as the font */
+    font-weight: 500;                  /* Medium weight */
+    font-size: 32px;                   /* Font size of 32 pixels */
+    line-height: 1.0;                  /* Line height of 100% (equivalent to 1.0) */
+    letter-spacing: -0.01em;           /* Letter spacing of -1% */
+}
+
+.login-button {
+background-color: #426B1F;  /* Green box background */
+color: white;
+font-size: 13px; 
+padding: 10px 20px;
+border-radius: 5px;
+text-decoration: none;  /* Remove underline */
+transition: background-color 0.3s, transform 0.2s;
+font-weight: bold;
+}
+
+/* Specific hover effect for the "Log In" link */
+.special-nav-link:hover {
+    background-color: #1b5e20;  /* Darker green background on hover */
+    color: #ffffff;             /* White text on hover */
+}
+
+.popup{
+    background: rgba(0, 0, 0, 0.6);
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.hidden {
+    display: none;
+}
+.popup-content{
+    height: 800px;
+    width: 1300px;
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    position: relative;
+
+}
+
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Background overlay for the pop-up */
+.popup {
+    background: rgba(0, 0, 0, 0.6);
+    width: 100%;
+    height: 100%;
+    position: fixed; /* Changed to fixed to keep pop-up centered even during scroll */
+    top: 0;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensure it's above other content */
+}
+
+
+
+/* Pop-up Content */
+.popup-content {
+    font-family: 'Poppins', sans-serif; 
+    height: 700px;  /* Let it adjust based on content */
+    width: 1150px;  /* Adjusted for a more standard form size */
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    position: relative;
+    display: flex;
+    gap: 20px;
+}
+
+/* Close Button */
+.close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: #000;
+}
+
+/* Container for form and image */
+.popup-form-container {
+    display: flex;
+    gap: 20px;
+    align-items: stretch;        /* Ensure both items take full height */
+    justify-content: space-between;
+}
+
+/* left side image */
+.form-image-left {
+    width: 40%;                  /* Take half of the available space */
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: left;         /* Vertically center the image */
+    justify-content: flex-end;   /* Align the image to the right */
+}
+
+.form-image-left img {
+    width: 100%;                 /* Ensure the image fills its container */
+    height: 100%;
+    object-fit: cover;           /* Maintain aspect ratio and fill the container */
+    border-radius: 10px;         /* Keep or remove rounded corners as desired */
+}
+
+/* Right side image */
+.form-image-right {
+    width: 60%;                  /* Take half of the available space */
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;         /* Vertically center the image */
+    justify-content: flex-end;   /* Align the image to the right */
+}
+
+.form-image-right img {
+    width: 100%;                 /* Ensure the image fills its container */
+    height: 100%;
+    object-fit: cover;           /* Maintain aspect ratio and fill the container */
+    border-radius: 10px;         /* Keep or remove rounded corners as desired */
+}
+
+/* Form Content Area */
+.form-content {
+    width: 100%;
+    flex: 1;  /* Allow form content to grow as needed */
+    max-width: 1000px; /* Adjust maximum width to ensure enough space for text */
+    
+}
+
+/* Form Header and Description */
+.form-content h2 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+
+.form-content p {
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+/* Form Group Row */
+.form-group-row {
+    display: flex;
+    gap: 20px;  /* Space between form groups in a row */
+
+}
+/* Form Group */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+    width: 100%;
+}
+.form-group label {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+.form-group input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #8F8F8F;
+    border-radius: 3px;
+    font-size: 14px;
+    background-color: #EDF0F2;
+}
+
+/* Checkbox */
+.form-group-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.form-group-checkbox label {
+    font-size: 14px;
+}
+
+.form-group-checkbox a {
+    color: #2e7d32; /* Green color */
+    text-decoration: underline;
+}
+
+/* Sign-Up Button */
+.signup-button {
+    width: 100%;
+    padding: 15px;
+    background-color: #2e7d32;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.signup-button:hover {
+    background-color: #1b5e20;
+}
+
+/* Login Link */
+.login-link {
+    margin-top: 20px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.login-link a {
+    color: #2e7d32;
+    text-decoration: none;
+}
+
+.login-link a:hover {
+    text-decoration: underline;
+}
+
+
+
+.green-square {
+    width: 20px;  /* Set the size of the square */
+    height: 20px;
+    background-color: #2e7d32;  /* Green color to match the "Sign up" button */
+    margin-bottom: 20px;  /* Add spacing below the square */
+    margin-top: 20px;
+    border-radius: 2px;  /* Optional: Slightly rounded corners if needed */
+}
+.hidden {
+    display: none;
+}
+
+/* Google Sign-In Button */
+.google-sign-in {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 25px;
+    background: white;
+    font-size: 14px;
+    margin-bottom: 30px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.google-sign-in img {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+}
+
+.google-sign-in:hover {
+    background-color: #f0f0f0;
+}
+
+.centered-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    width: 100%;
+}
+
+/* Booking Form Styling */
+.booking-form {
+    background-color: white;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 600px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.form-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    position: relative;
+}
+
+.form-group {
+    flex: 1;
+    position: relative;
+}
+
+label {
+    display: block;
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 5px;
+}
+
+input[type="text"],
+input[type="date"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.dropdown {
+    position: absolute;
+    background-color: white;
+    width: 100%;
+    max-height: 150px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    display: none;
+    z-index: 100;
+    box-sizing: border-box;
+}
+
+.dropdown div {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.dropdown div:hover {
+    background-color: #f0f0f0;
+}
+
+.options {
+    display: flex;
+    justify-content: space-between;
+}
+
+.search-button {
+    width: 100%;
+    padding: 10px;
+    background-color: #5e7d32;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.search-button:hover {
+    background-color: #486122;
+}
