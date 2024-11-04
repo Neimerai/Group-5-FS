@@ -1,9 +1,28 @@
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from firebase_database import create_user, get_user_by_email, create_booking, get_bookings_by_user
-
+import re
 app = Flask(__name__)
 app.secret_key = "supersecretkey"  # Replace with a secure key
+
+def is_strong_password(password):
+    # Minimum length of 8 characters
+    if len(password) < 8:
+        return False, "Password must be at least 8 characters long."
+    # At least one uppercase letter
+    if not re.search(r"[A-Z]", password):
+        return False, "Password must contain at least one uppercase letter."
+    # At least one lowercase letter
+    if not re.search(r"[a-z]", password):
+        return False, "Password must contain at least one lowercase letter."
+    # At least one digit
+    if not re.search(r"[0-9]", password):
+        return False, "Password must contain at least one number."
+    # At least one special character
+    if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+        return False, "Password must contain at least one special character."
+
+    return True, "Password is strong."
 
 # Render the home page with full HTML structure
 @app.route('/', methods=['GET'])
@@ -14,22 +33,30 @@ def home():
 def signup():
     try:
         data = request.json
-        print("Received data:", data)  # Debug print
-
         email = data.get('email')
         password = data.get('password')
-        
-        if not email or not password:
-            print("Error: Missing email or password")  # Debug print
-            return jsonify({"success": False, "message": "Missing email or password"}), 400
+        first_name = data.get("first_name")
+        last_name = data.get("last_name")
+        phone = data.get("phone")
+      
+        # Check for blank required fields explicitly
+        if not (email and email.strip()) or not (password and password.strip()) or \
+           not (first_name and first_name.strip()) or not (last_name and last_name.strip()) or \
+           not (phone and phone.strip()):
+            print("Error: Missing required fields")  # Debug print
+            return jsonify({"success": False, "message": "Missing required fields"}), 400
 
-        # Check if user already exists in Firebase
+        # Validate password strength
+        is_strong, message = is_strong_password(password)
+        if not is_strong:
+            return jsonify({"success": False, "message": message}), 400
+
+        # Check if user already exists
         existing_user = get_user_by_email(email)
         if existing_user:
-            print("Error: Email already in use")  # Debug print
             return jsonify({"success": False, "message": "Email already in use"}), 400
 
-        # Hash password and create user in Firebase
+        # Hash password and create user
         hashed_password = generate_password_hash(password)
         user_id = create_user({
             "first_name": data.get("first_name"),
@@ -39,12 +66,12 @@ def signup():
             "password": hashed_password
         })
 
-        print("User created successfully with ID:", user_id)  # Debug print
-        return jsonify({"success": True, "message": "Signup successful", "user_id": user_id})
+        return jsonify({"success": True, "message": "Signup successful", "user_id": user_id}), 200
 
     except Exception as e:
         print("Signup error:", str(e))  # Log the error
         return jsonify({"success": False, "message": "An error occurred during signup"}), 500
+
 
 
 # Route to handle login (POST request)
