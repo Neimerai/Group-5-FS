@@ -1,146 +1,127 @@
- // Function to show the Sign-Up pop-up when clicking the Log In button
- function openSignUp() {
-    const signUpPopup = document.getElementById('registerPopup');
-    signUpPopup.classList.remove('hidden');
+// Function to show a popup by ID
+function showPopup(id) {
+    const popup = document.getElementById(id);
+    if (popup) {
+        popup.classList.remove('hidden');
+    }
 }
 
-// Function to show the Sign-Up pop-up and hide the Login pop-up
-function showSignUp() {
-    const loginPopup = document.getElementById('loginPopup');
-    const signUpPopup = document.getElementById('registerPopup');
-    
-    loginPopup.classList.add('hidden');
-    signUpPopup.classList.remove('hidden');
+// Function to hide a popup by ID
+function closePopup(id) {
+    const popup = document.getElementById(id);
+    if (popup) {
+        popup.classList.add('hidden');
+    }
 }
 
-// Function to show the Login pop-up and hide the Sign-Up pop-up
+// Toggle between showing Login and Register popups
 function showLogin() {
-    const loginPopup = document.getElementById('loginPopup');
-    const signUpPopup = document.getElementById('registerPopup');
-    
-    signUpPopup.classList.add('hidden');
-    loginPopup.classList.remove('hidden');
+    closePopup('registerPopup');
+    showPopup('loginPopup');
 }
 
-// Function to close the current pop-up
-function closePopup(popupId) {
-    const popup = document.getElementById(popupId);
-    popup.classList.add('hidden');
+function showSignUp() {
+    closePopup('loginPopup');
+    showPopup('registerPopup');
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Attach event listeners for form submissions
-
-    // Sign-Up Form
-    const registerForm = document.querySelector('#registerPopup form');
-    if (registerForm) {
-        registerForm.addEventListener('submit', function(event) {
-            event.preventDefault(); // Prevent form submission to server
-
-            // Get user input
-            const newUser = {
-                firstName: document.getElementById('first-name').value,
-                lastName: document.getElementById('last-name').value,
-                email: document.getElementById('sign-up-email').value,
-                phone: document.getElementById('phone').value,
-                password: document.getElementById('sign-up-password').value
-            };
-
-            // Call registerUser() from mock backend
-            if (registerUser(newUser)) {
-                showLogin();
-            }
-        });
-    }
-
-    // Login Form
-    const loginForm = document.querySelector('#loginPopup form');
-    if (loginForm) {
-        loginForm.addEventListener('submit', function(event) {
-            event.preventDefault(); // Prevent form submission to server
-
-            // Get user input
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-
-            // Call loginUser() from mock backend
-            if (loginUser(email, password)) {
-                closePopup('loginPopup'); // Close login pop-up
-                updateLoginButton(); // Update the login button to "Log Out"
-            }
-        });
-    }
-
-    // Function to handle logout
-    const loginButton = document.querySelector('.login-button');
-    loginButton.addEventListener('click', function(event) {
-        if (loginButton.textContent === 'Log Out') {
-            logoutUser();
-        } else {
-            openSignUp(); // Open the login pop-up if user is not logged in
-        }
-    });
-});
-
-// Function to update login button to "Log Out"
+// Update Login Button to show "Log Out" if the user is logged in
 function updateLoginButton() {
     const loginButton = document.querySelector('.login-button');
-    loginButton.textContent = 'Log Out';
-    loginButton.classList.add('logout-button');
-}
-
-// Function to log out the user
-function logoutUser() {
-    const loginButton = document.querySelector('.login-button');
-    loginButton.textContent = 'Log In';
-    loginButton.classList.remove('logout-button');
-    alert('You have successfully logged out.');
-}
-
-const airports = [
-    "Toronto Pearson International (YYZ)",
-    "London Heathrow (LHR)",
-    "Los Angeles International (LAX)",
-    "John F. Kennedy International (JFK)",
-    "Chicago O'Hare International (ORD)",
-    "Dubai International (DXB)",
-    "Tokyo Haneda Airport (HND)",
-    "Sydney Kingsford Smith Airport (SYD)",
-    "Paris Charles de Gaulle Airport (CDG)",
-    "Frankfurt Airport (FRA)"
-];
-
-function filterAirports(field) {
-    const input = document.getElementById(field);
-    const dropdown = document.getElementById(`${field}-dropdown`);
-    dropdown.innerHTML = ''; 
-    const query = input.value.toLowerCase();
-
-    if (query) {
-
-        const filteredAirports = airports.filter(airport => airport.toLowerCase().includes(query));
-
-        filteredAirports.forEach(airport => {
-            const option = document.createElement('div');
-            option.textContent = airport;
-            option.onclick = () => selectAirport(field, airport);
-            dropdown.appendChild(option);
-        });
-
-        dropdown.style.display = 'block';
-        dropdown.style.top = `${input.offsetHeight + 20}px`;
-        dropdown.style.left = '0';
-        dropdown.style.width = `${input.offsetWidth}px`;
-    } else {
-        dropdown.style.display = 'none';
+    if (loginButton) {
+        loginButton.textContent = "Log Out";
+        loginButton.onclick = logout;
     }
 }
 
-function selectAirport(field, airport) {
-    document.getElementById(field).value = airport;
-    document.getElementById(`${field}-dropdown`).style.display = 'none';
+// Logout function
+function logout() {
+    fetch('/logout')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload(); // Reload the page after logout
+            }
+        })
+        .catch(error => console.error('Error during logout:', error));
 }
 
+// Register Form Submission
+const registerForm = document.querySelector('#registerPopup form');
+if (registerForm) {
+    registerForm.addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent form submission to server
+
+        // Get user input
+        const newUser = {
+            first_name: document.getElementById('first-name').value,
+            last_name: document.getElementById('last-name').value,
+            email: document.getElementById('sign-up-email').value,
+            phone: document.getElementById('phone').value,
+            password: document.getElementById('sign-up-password').value
+        };
+
+        // Send POST request to Flask backend
+        fetch('/signup', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(newUser)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Registration successful!');
+                showLogin(); // Show login popup after successful signup
+            } else {
+                alert(data.message || 'Signup failed');
+            }
+        })
+        .catch(error => {
+            console.error('Error during signup:', error);
+            alert('An error occurred during signup.');
+        });
+    });
+}
+
+// Login Form Submission
+const loginForm = document.querySelector('#loginPopup form');
+if (loginForm) {
+    loginForm.addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent form submission to server
+
+        // Get user input
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        // Send POST request to Flask backend
+        fetch('/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Login successful');
+                closePopup('loginPopup'); // Close login popup
+                updateLoginButton(); // Update login button to "Log Out"
+            } else {
+                alert(data.message || 'Login failed');
+            }
+        })
+        .catch(error => {
+            console.error('Error during login:', error);
+            alert('An error occurred during login.');
+        });
+    });
+}
+
+// Function to submit the booking form
 function submitForm() {
     const from = document.getElementById('from').value;
     const to = document.getElementById('to').value;
@@ -149,42 +130,54 @@ function submitForm() {
     const directFlight = document.getElementById('direct-flight').checked;
     const hotelIncluded = document.getElementById('hotel-included').checked;
 
-    if (!from || !to || !departure || !returnDate) {
-        alert('Please fill in all fields before searching.');
-        return;
-    }
-
-    const requestData = {
-        from,
-        to,
-        departure,
-        returnDate,
-        directFlight,
-        hotelIncluded
-    };
-
-    // Send a POST request to the server
-    fetch('http://localhost:5000/search-flights', {
+    fetch('/bookings', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(requestData)
+        body: JSON.stringify({
+            from,
+            to,
+            departure,
+            return_date: returnDate,
+            direct_flight: directFlight,
+            hotel_included: hotelIncluded
+        })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            let flightInfo = 'Flights found:\n';
-            data.flights.forEach(flight => {
-                flightInfo += `Airline: ${flight.airline}, Price: $${flight.price}, Direct: ${flight.direct ? 'Yes' : 'No'}, Hotel Included: ${flight.hotelIncluded ? 'Yes' : 'No'}\n`;
-            });
-            alert(flightInfo);
+            alert('Booking created successfully!');
         } else {
-            alert(data.message);
+            alert(data.message || 'Booking failed');
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while searching for flights.');
+        console.error('Error during booking creation:', error);
+        alert('An error occurred while creating the booking.');
     });
+}
+
+// Filtering airports (simulated example; ideally, this would pull data from an API or database)
+function filterAirports(inputId) {
+    const input = document.getElementById(inputId);
+    const dropdown = document.getElementById(`${inputId}-dropdown`);
+
+    // Example filtering logic
+    const airports = ["JFK", "LAX", "ORD", "ATL", "DFW", "DEN", "SFO"];
+    dropdown.innerHTML = '';
+    airports.forEach(airport => {
+        if (airport.toLowerCase().includes(input.value.toLowerCase())) {
+            const option = document.createElement('div');
+            option.textContent = airport;
+            option.onclick = () => {
+                input.value = airport;
+                dropdown.innerHTML = '';
+            };
+            dropdown.appendChild(option);
+        }
+    });
+
+    // Show dropdown if input has text; hide otherwise
+    dropdown.style.display = input.value ? 'block' : 'none';
 }
