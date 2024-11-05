@@ -158,26 +158,51 @@ function submitForm() {
     });
 }
 
-// Filtering airports (simulated example; ideally, this would pull data from an API or database)
-function filterAirports(inputId) {
-    const input = document.getElementById(inputId);
-    const dropdown = document.getElementById(`${inputId}-dropdown`);
 
-    // Example filtering logic
-    const airports = ["JFK", "LAX", "ORD", "ATL", "DFW", "DEN", "SFO"];
-    dropdown.innerHTML = '';
-    airports.forEach(airport => {
-        if (airport.toLowerCase().includes(input.value.toLowerCase())) {
+
+// Filtering airports (simulated example; ideally, this would pull data from an API or database)
+function filterAirports(field) {
+    const input = document.getElementById(field);
+    const dropdown = document.getElementById(`${field}-dropdown`);
+    const airports = [
+        "Toronto Pearson International (YYZ)",
+        "London Heathrow (LHR)",
+        "Los Angeles International (LAX)",
+        "John F. Kennedy International (JFK)",
+        "Chicago O'Hare International (ORD)",
+        "Dubai International (DXB)",
+        "Tokyo Haneda Airport (HND)",
+        "Sydney Kingsford Smith Airport (SYD)",
+        "Paris Charles de Gaulle Airport (CDG)",
+        "Frankfurt Airport (FRA)"
+    ];
+
+    dropdown.innerHTML = ''; 
+    const query = input.value.toLowerCase();
+
+    if (query) {
+        // Filter airports based on user input
+        const filteredAirports = airports.filter(airport => airport.toLowerCase().includes(query));
+
+        // Create and display dropdown options for each matching airport
+        filteredAirports.forEach(airport => {
             const option = document.createElement('div');
             option.textContent = airport;
-            option.onclick = () => {
-                input.value = airport;
-                dropdown.innerHTML = '';
-            };
+            option.onclick = () => selectAirport(field, airport);
             dropdown.appendChild(option);
-        }
-    });
+        });
 
-    // Show dropdown if input has text; hide otherwise
-    dropdown.style.display = input.value ? 'block' : 'none';
+        dropdown.style.display = 'block';
+        dropdown.style.top = `${input.offsetHeight + 20}px`;
+        dropdown.style.left = '0';
+        dropdown.style.width = `${input.offsetWidth}px`;
+    } else {
+        dropdown.style.display = 'none';
+    }
+}
+// Update the input field
+function selectAirport(field, airport) {
+    document.getElementById(field).value = airport;
+    document.getElementById(`${field}-dropdown`).style.display = 'none';
+
 }
