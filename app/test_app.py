@@ -119,5 +119,123 @@ class FlightBookingSystemTest(unittest.TestCase):
         booking_id = create_booking(booking_data)
         self.assertIsNotNone(booking_id, "Booking creation failed, returned None")
 
+
+
+    # NEW TESTS TO IMPROVE COVERAGE
+
+    def test_duplicate_email_registration(self):
+    # First registration
+        response = self.client.post('/signup', json={
+            "first_name": "Duplicate",
+            "last_name": "User",
+            "email": self.unique_email,
+            "password": "Test@1234",
+            "phone": "1234567890"
+        })
+        self.assertEqual(response.status_code, 200)
+
+        # Attempt registration with the same email again
+        response = self.client.post('/signup', json={
+            "first_name": "Duplicate",
+            "last_name": "User",
+            "email": self.unique_email,
+            "password": "Test@1234",
+            "phone": "1234567890"
+        })
+        self.assertEqual(response.status_code, 400)
+        self.assertIn(b"Email already in use", response.data)
+
+
+
+    def test_access_protected_route_without_login(self):
+        response = self.client.get('/my_bookings')
+        self.assertEqual(response.status_code, 401)
+        self.assertIn(b"User not logged in", response.data)
+
+    def test_logout(self):
+        # Log in first
+        self.client.post('/login', json={
+            "email": self.unique_email,
+            "password": "Test@1234"
+        })
+
+        # Log out
+        response = self.client.get('/logout')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Logged out", response.data)
+
+        # Try accessing protected route after logout
+        response = self.client.get('/my_bookings')
+        self.assertEqual(response.status_code, 401)
+        self.assertIn(b"User not logged in", response.data)
+
+    def test_create_booking_without_login(self):
+        response = self.client.post('/bookings', json={
+            "from": "CityA",
+            "to": "CityB",
+            "departure": "2024-12-20",
+            "return_date": "2024-12-30",
+            "direct_flight": True,
+            "hotel_included": False
+        })
+        self.assertEqual(response.status_code, 401)
+        self.assertIn(b"User not logged in", response.data)
+
+    def test_create_booking_with_missing_fields(self):
+        # Register the user first
+        self.client.post('/signup', json={
+            "first_name": "Test",
+            "last_name": "User",
+            "email": self.unique_email,
+            "password": "Test@1234",
+            "phone": "1234567890"
+        })
+
+        # Log in with the registered user
+        self.client.post('/login', json={
+            "email": self.unique_email,
+            "password": "Test@1234"
+        })
+
+        # Attempt to create a booking with missing fields
+        response = self.client.post('/bookings', json={
+            "from": "CityA",
+            # Missing 'to' field
+            "departure": "2024-12-20",
+            "return_date": "2024-12-30",
+            "direct_flight": True,
+            "hotel_included": False
+        })
+
+        self.assertEqual(response.status_code, 400)  # Check for 400 Bad Request
+        self.assertIn(b"Missing required field: to", response.data)  # Specific message check
+    
+    def test_my_bookings_empty_for_new_user(self):
+        # Register and log in the user
+        self.client.post('/signup', json={
+            "first_name": "New",
+            "last_name": "User",
+            "email": self.unique_email,
+            "password": "Test@1234",
+            "phone": "1234567890"
+        })
+        self.client.post('/login', json={
+            "email": self.unique_email,
+            "password": "Test@1234"
+        })
+
+        # Check for empty bookings list
+        response = self.client.get('/my_bookings')
+        self.assertEqual(response.status_code, 200)
+        json_data = response.get_json()
+        self.assertTrue("bookings" in json_data)
+        self.assertEqual(len(json_data["bookings"]), 0)
+
+    def test_invalid_json_format(self):
+        # Sending invalid JSON (missing closing brace)
+        response = self.client.post('/signup', data='{"first_name": "Test", "email": "test@example.com"')
+        self.assertEqual(response.status_code, 500)
+        self.assertIn(b"An error occurred during signup", response.data)
+
 if __name__ == "__main__":
     unittest.main()

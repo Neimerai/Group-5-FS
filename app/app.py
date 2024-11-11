@@ -3,26 +3,22 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from firebase_database import create_user, get_user_by_email, create_booking, get_bookings_by_user
 import re
 app = Flask(__name__)
-app.secret_key = "supersecretkey"  # Replace with a secure key
+import os
+app.secret_key = os.getenv("SECRET_KEY", "supersecretkey")  # Ensure "supersecretkey" is replaced in production
 
 def is_strong_password(password):
-    # Minimum length of 8 characters
-    if len(password) < 8:
-        return False, "Password must be at least 8 characters long."
-    # At least one uppercase letter
-    if not re.search(r"[A-Z]", password):
-        return False, "Password must contain at least one uppercase letter."
-    # At least one lowercase letter
-    if not re.search(r"[a-z]", password):
-        return False, "Password must contain at least one lowercase letter."
-    # At least one digit
-    if not re.search(r"[0-9]", password):
-        return False, "Password must contain at least one number."
-    # At least one special character
-    if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
-        return False, "Password must contain at least one special character."
-
+    requirements = [
+        (len(password) >= 8, "Password must be at least 8 characters long."),
+        (re.search(r"[A-Z]", password), "Password must contain at least one uppercase letter."),
+        (re.search(r"[a-z]", password), "Password must contain at least one lowercase letter."),
+        (re.search(r"[0-9]", password), "Password must contain at least one number."),
+        (re.search(r"[!@#$%^&*(),.?\":{}|<>]", password), "Password must contain at least one special character.")
+    ]
+    for condition, message in requirements:
+        if not condition:
+            return False, message
     return True, "Password is strong."
+
 
 # Render the home page with full HTML structure
 @app.route('/', methods=['GET'])
@@ -38,7 +34,10 @@ def signup():
         first_name = data.get("first_name")
         last_name = data.get("last_name")
         phone = data.get("phone")
-      
+
+        if not data:
+            return jsonify({"success": False, "message": "No data provided"}), 400
+
         # Check for blank required fields explicitly
         if not (email and email.strip()) or not (password and password.strip()) or \
            not (first_name and first_name.strip()) or not (last_name and last_name.strip()) or \
@@ -93,6 +92,13 @@ def login():
 def create_booking_route():
     if 'user_email' not in session:
         return jsonify({"success": False, "message": "User not logged in"}), 401
+    data = request.json
+    required_fields = ["from", "to", "departure", "return_date", "direct_flight", "hotel_included"]
+    
+    # Check if all required fields are provided and not empty
+    for field in required_fields:
+        if field not in data or not data[field]:
+            return jsonify({"success": False, "message": f"Missing required field: {field}"}), 400
 
     data = request.json
     booking_id = create_booking({
@@ -121,6 +127,7 @@ def get_user_bookings():
 def logout():
     session.pop('user_email', None)
     return jsonify({"success": True, "message": "Logged out"})
+
 
 if __name__ == '__main__':
     app.run(debug=True)
