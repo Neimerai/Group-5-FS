@@ -5,6 +5,9 @@ import re
 app = Flask(__name__)
 import os
 app.secret_key = os.getenv("SECRET_KEY", "supersecretkey")  # Ensure "supersecretkey" is replaced in production
+from datetime import timedelta
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)
+
 
 def is_strong_password(password):
     requirements = [
@@ -83,13 +86,18 @@ def login():
     # Verify the user and check password
     user = get_user_by_email(email)
     if user and check_password_hash(user["password"], password):
-        session['user_email'] = email
+        session.clear()  # Clear any existing session
+        session['user_email'] = email  # Set the session
+        print(f"Session set for user_email: {session.get('user_email')}")  # Debugging
         return jsonify({"success": True, "message": "Login successful"})
+    print("Login failed, invalid email or password")  # Debugging
     return jsonify({"success": False, "message": "Invalid email or password"}), 401
+
 
 # Route to create a booking (POST request)
 @app.route('/bookings', methods=['POST'])
 def create_booking_route():
+    print(f"Session user_email: {session.get('user_email')}")  # Debugging
     if 'user_email' not in session:
         return jsonify({"success": False, "message": "User not logged in"}), 401
     data = request.json
