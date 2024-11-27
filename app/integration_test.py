@@ -2,7 +2,6 @@ import unittest
 import uuid
 from app import app
 
-
 class TestIntegration(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -77,6 +76,93 @@ class TestIntegration(unittest.TestCase):
             response = client.get('/my_bookings')
             self.assertEqual(response.status_code, 401, f"Access to protected route succeeded unexpectedly: {response.json}")
             self.assertIn("User not logged in", response.json["message"])
+    
+
+    def test_invalid_login(self):
+        """Test login with incorrect credentials."""
+        with self.client as client:
+            # Attempt to log in with incorrect email and password
+            login_data = {
+                "email": "nonexistent@example.com",  # Email that does not exist in the system
+                "password": "wrongpassword"
+            }
+            response = client.post('/login', json=login_data)
+            self.assertEqual(
+                response.status_code,
+                401,
+                f"Expected 401 for invalid login, got {response.status_code}"
+            )
+            self.assertIn("Invalid email or password", response.json["message"])
+
+            # Attempt to log in with correct email but incorrect password
+            signup_data = {
+                "email": self.random_email,
+                "password": self.password,
+                "first_name": "Integration",
+                "last_name": "Test",
+                "phone": "1234567890"
+            }
+            # Create a user first
+            client.post('/signup', json=signup_data)
+
+            login_data = {
+                "email": self.random_email,
+                "password": "wrongpassword"
+            }
+            response = client.post('/login', json=login_data)
+            self.assertEqual(
+                response.status_code,
+                401,
+                f"Expected 401 for incorrect password, got {response.status_code}"
+            )
+            self.assertIn("Invalid email or password", response.json["message"])
+        
+    
+    def test_get_bookings_empty(self):
+        """Test retrieving bookings for a user with no bookings."""
+        with self.client as client:
+            # Generate a unique email to ensure it is not already used
+            unique_email = f"testuser_{self.random_email}@example.com"
+            
+            # Signup as a new user
+            signup_data = {
+                "email": unique_email,
+                "password": self.password,
+                "first_name": "New",
+                "last_name": "User",
+                "phone": "9876543210"
+            }
+            response = client.post('/signup', json=signup_data)
+            self.assertEqual(
+                response.status_code, 
+                200, 
+                f"Signup failed: {response.json}"
+            )
+            self.assertIn("Signup successful", response.json["message"])
+
+            # Login with the newly signed-up user
+            login_data = {
+                "email": unique_email,
+                "password": self.password
+            }
+            response = client.post('/login', json=login_data)
+            self.assertEqual(
+                response.status_code,
+                200,
+                f"Login failed: {response.json}"
+            )
+            self.assertIn("Login successful", response.json["message"])
+
+            # Get bookings for a new user (no bookings should exist)
+            response = client.get('/my_bookings')
+            self.assertEqual(
+                response.status_code,
+                200,
+                f"Get bookings failed: {response.json}"
+            )
+            self.assertIn("bookings", response.json)
+            self.assertIsInstance(response.json["bookings"], dict)
+            self.assertEqual(len(response.json["bookings"]), 0, "Bookings should be empty for a new user")
 
 
 if __name__ == '__main__':
