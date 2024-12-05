@@ -10,6 +10,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 # Initialize WebDriver
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+wait = WebDriverWait(driver, 10)
 
 # Flask app URL
 BASE_URL = "http://127.0.0.1:5000"
@@ -19,36 +20,33 @@ def generate_random_email():
     username = ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
     return f"{username}@example.com"
 
-
-def test_signup_and_login_flow():
+def test_user_flow():
     try:
+        # Login in/Sign up test
         # Generate random email and set password
         random_email = generate_random_email()
         password = "StrongP@ssw0rd"
 
         # Navigate to the home page
         driver.get(BASE_URL)
+        print("Navigated to home page.")
 
         # Click the Log In button to open the login modal
-        login_button = WebDriverWait(driver, 10).until(
+        login_button = wait.until(
             EC.element_to_be_clickable((By.CLASS_NAME, "login-button"))
         )
         login_button.click()
         print("Login modal opened.")
 
         # Wait for the sign-up link in the login modal and click it
-        signup_link = WebDriverWait(driver, 10).until(
+        signup_link = wait.until(
             EC.element_to_be_clickable((By.LINK_TEXT, "Create a new account"))
         )
         signup_link.click()
         print("Sign-up modal opened.")
 
-        # Wait for the sign-up modal to be visible
-        WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located((By.ID, "registerPopup"))
-        )
-
         # Fill out the sign-up form
+        wait.until(EC.visibility_of_element_located((By.ID, "registerPopup")))
         driver.find_element(By.ID, "first-name").send_keys("Test")
         driver.find_element(By.ID, "last-name").send_keys("User")
         driver.find_element(By.ID, "sign-up-email").send_keys(random_email)
@@ -58,52 +56,95 @@ def test_signup_and_login_flow():
         print("Sign-up form filled.")
 
         # Submit the form explicitly
-        signup_form = driver.find_element(By.ID, "registerForm")
-        signup_form.submit()
+        driver.find_element(By.ID, "registerForm").submit()
         print("Sign-up form submitted.")
 
         # Handle the alert that appears after signup
-        WebDriverWait(driver, 10).until(EC.alert_is_present())
+        wait.until(EC.alert_is_present())
         alert = driver.switch_to.alert
-        print(f"Alert detected: {alert.text}")
-        alert.accept()  # Accept the alert
-        print("Registration successful accepted.")
+        print(f"Signup Alert: {alert.text}")
+        alert.accept()
+        print("Signup successful.")
 
         # Wait for the login modal to be visible
-        WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located((By.ID, "loginPopup"))
-        )
-
-        # Fill in the email field with the newly created email
+        wait.until(EC.visibility_of_element_located((By.ID, "loginPopup")))
         driver.find_element(By.ID, "email").send_keys(random_email)
         driver.find_element(By.ID, "password").send_keys(password)
         print("Login form filled.")
 
-        # Submit the login form
+        # Fill in the email field with the newly created email
         login_submit_button = driver.find_element(By.CLASS_NAME, "signup-button")
-        WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.CLASS_NAME, "signup-button"))
-        )
         login_submit_button.click()
-        print("Login button clicked.")
+        print("Login form submitted.")
 
-         # Handle the alert that appears after signup
-        WebDriverWait(driver, 10).until(EC.alert_is_present())
+        # Submit the login form
+        wait.until(EC.alert_is_present())
         alert = driver.switch_to.alert
-        print(f"Alert detected: {alert.text}")
-        alert.accept()  # Accept the alert
-        print("Login successful accepted.")
+        print(f"Login Alert: {alert.text}")
+        alert.accept()
+        print("Login successful.")
+
+        # Booking test
+        wait.until(EC.visibility_of_element_located((By.ID, "flightForm")))
+        print("Booking form is visible.")
+
+        # Fill out the booking form
+        driver.find_element(By.ID, "from").send_keys("Toronto Pearson International (YYZ)")
+        driver.find_element(By.ID, "to").send_keys("Los Angeles International (LAX)")
+        driver.find_element(By.ID, "departure").send_keys("2024-12-10")
+        driver.find_element(By.ID, "return").send_keys("2024-12-15")
+        print("Booking form filled.")
+
+        # Select checkboxes for booking options
+        direct_flight_checkbox = driver.find_element(By.ID, "direct-flight")
+        hotel_included_checkbox = driver.find_element(By.ID, "hotel-included")
+
+        if not direct_flight_checkbox.is_selected():
+            direct_flight_checkbox.click()
+        if not hotel_included_checkbox.is_selected():
+            hotel_included_checkbox.click()
+        print("Checkboxes selected.")
+
+        # Submit the booking form
+        submit_button = driver.find_element(By.CLASS_NAME, "search-button")
+        submit_button.click()
+        print("Booking form submitted.")
+
+        # Handle the alert that appears after booking
+        wait.until(EC.alert_is_present())
+        alert = driver.switch_to.alert
+        print(f"Booking Alert: {alert.text}")
+
+        if "Booking created successfully" in alert.text:
+            print("Booking creation test passed.")
+        else:
+            raise AssertionError(f"Unexpected alert text: {alert.text}")
+
+        alert.accept()
+
+        # Logout test
+        logout_button = driver.find_element(By.CLASS_NAME, "login-button")
+        logout_button.click()
+        print("Logout button clicked.")
+
+        # Handle the alert that appears after logout
+        wait.until(EC.alert_is_present())
+        alert = driver.switch_to.alert
+        print(f"Logout Alert: {alert.text}")
+
+        if "Logged out" in alert.text:
+            print("Logout test passed.")
+        else:
+            raise AssertionError(f"Unexpected logout alert text: {alert.text}")
+
+        alert.accept()
 
     except TimeoutException as e:
-        print(f"Test signup and login flow: Timeout occurred: {e}")
+        print(f"Timeout Error: {e}")
     except Exception as e:
-        print(f"Test signup and login flow: Failed ({e})")
+        print(f"Test failed: {e}")
     finally:
         driver.quit()
-    
-
-
-
 
 # Run the test
-test_signup_and_login_flow()
+test_user_flow()
