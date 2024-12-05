@@ -6,10 +6,10 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
+from webdriver_manager.chrome import ChromeDriverManager
 
 # Initialize WebDriver
-service = Service("C:\\Users\\Nicholas Wang\\Documents\\chromedriver-win32\\chromedriver.exe")  # Path to ChromeDriver
-driver = webdriver.Chrome(service=service)
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
 
 # Flask app URL
 BASE_URL = "http://127.0.0.1:5000"
@@ -100,6 +100,9 @@ def test_signup_and_login_flow():
         print(f"Test signup and login flow: Failed ({e})")
     finally:
         driver.quit()
+    
+
+
 
 
 # Run the test
